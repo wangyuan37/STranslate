@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using STranslate.Model;
@@ -185,11 +186,14 @@ public class StringUtil
     private static readonly List<Regex> Patterns =
     [
         new Regex(@"([?!.])[ ]?\n"), // 匹配英文标点符号后跟随换行符
-        new Regex(@"([？！。])[ ]?\n")
+        new Regex(@"([？！。])[ ]?\n") 
     ];
     // 定义一个正则表达式，用于匹配特定标点符号并用换行符替换
     private static readonly Regex SentenceEnds = new Regex(@"#([?？！!.。])#");
-    
+
+    // 定义复制乱码替换
+    private static readonly Regex Garbled = new Regex(@"(\0.*)");
+
     /// <summary>
     /// 规范化给定的文本，通过移除或替换某些字符和模式。
     /// <see href="https://github1s.com/CopyTranslator/CopyTranslator/blob/master/src/common/translate/helper.ts#L172"/>
@@ -198,6 +202,9 @@ public class StringUtil
     /// <returns>规范化后的文本。</returns>
     public static string NormalizeText(string src)
     {
+        //乱码
+        src = Garbled.Replace(src, "");
+
         // 将所有的回车换行符替换为换行符
         src = src.Replace("\r\n", "\n");
         // 将所有的回车符替换为换行符
