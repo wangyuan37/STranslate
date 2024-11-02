@@ -67,6 +67,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Dapper" />
     <PackageReference Include="Dapper.Contrib" />
+    <PackageReference Include="Edge_tts_sharp" />
     <PackageReference Include="gong-wpf-dragdrop" />
     <PackageReference Include="H.InputSimulator" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" />
@@ -110,6 +111,9 @@
     <Compile Update="Views\Preference\BackupPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Preference\ServicePage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Preference\ReplacePage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -117,6 +121,9 @@
 	  <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Preference\OCRPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Preference\VocabularyBookPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Preference\TTSPage.xaml.cs">

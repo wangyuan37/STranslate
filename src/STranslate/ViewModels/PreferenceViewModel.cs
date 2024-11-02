@@ -12,7 +12,7 @@ namespace STranslate.ViewModels;
 
 public partial class PreferenceViewModel : WindowVMBase
 {
-    private readonly ScrollViewer view = new();
+    private readonly ScrollViewer _view = new();
 
     [ObservableProperty] private object? _currentView;
 
@@ -41,8 +41,9 @@ public partial class PreferenceViewModel : WindowVMBase
                 HotkeyPage();
                 break;
 
-            case PerferenceType.Service:
-                TranslatorPage();
+            case PerferenceType.Translator:
+                ServicePage();
+                Singleton<ServiceViewModel>.Instance.SelectedIndex = 0;
                 break;
 
             case PerferenceType.Replace:
@@ -50,11 +51,18 @@ public partial class PreferenceViewModel : WindowVMBase
                 break;
 
             case PerferenceType.OCR:
-                OCRPage();
+                ServicePage();
+                Singleton<ServiceViewModel>.Instance.SelectedIndex = 1;
                 break;
 
             case PerferenceType.TTS:
-                TTSPage();
+                ServicePage();
+                Singleton<ServiceViewModel>.Instance.SelectedIndex = 2;
+                break;
+
+            case PerferenceType.VocabularyBook:
+                VocabularyBookPage();
+                Singleton<ServiceViewModel>.Instance.SelectedIndex = 3;
                 break;
 
             case PerferenceType.Favorite:
@@ -68,6 +76,10 @@ public partial class PreferenceViewModel : WindowVMBase
 
             case PerferenceType.About:
                 AboutPage();
+                break;
+
+            case PerferenceType.Service:
+                ServicePage();
                 break;
 
             default:
@@ -124,7 +136,7 @@ public partial class PreferenceViewModel : WindowVMBase
         CurrentView = Singleton<HistoryViewModel>.Instance;
 
         // 加载记录
-        Singleton<HistoryViewModel>.Instance.LoadMoreHistoryCommand.Execute(view);
+        Singleton<HistoryViewModel>.Instance.LoadMoreHistoryCommand.Execute(_view);
     }
 
     [RelayCommand]
@@ -140,10 +152,21 @@ public partial class PreferenceViewModel : WindowVMBase
         Singleton<AboutViewModel>.Instance.CheckLogCommand.Execute(null);
     }
 
+    [RelayCommand]
+    private void ServicePage()
+    {
+        CurrentView = Singleton<ServiceViewModel>.Instance;
+    }
+
+    [RelayCommand]
+    private void VocabularyBookPage()
+    {
+        CurrentView = Singleton<VocabularyBookViewModel>.Instance;
+    }
+
     public override void Close(Window win)
     {
-        if (Singleton<HistoryViewModel>.Instance.HistoryDetailContent is UserControl view &&
-            view.DataContext is HistoryContentViewModel vm) vm.TTSCancelCommand.Execute(null);
+        if (Singleton<HistoryViewModel>.Instance.HistoryDetailContent is UserControl { DataContext: HistoryContentViewModel vm }) vm.TTSCancelCommand.Execute(null);
         Singleton<AboutViewModel>.Instance.CheckUpdateCancelCommand.Execute(null);
         base.Close(win);
     }
@@ -179,6 +202,12 @@ public partial class PreferenceViewModel : WindowVMBase
 
             case BackupViewModel:
                 Singleton<BackupViewModel>.Instance.SaveCommand.Execute(null);
+                break;
+
+            case ServiceViewModel:
+                Singleton<TranslatorViewModel>.Instance.SaveCommand.Execute(null);
+                Singleton<OCRScvViewModel>.Instance.SaveCommand.Execute(null);
+                Singleton<TTSViewModel>.Instance.SaveCommand.Execute(null);
                 break;
         }
     }
