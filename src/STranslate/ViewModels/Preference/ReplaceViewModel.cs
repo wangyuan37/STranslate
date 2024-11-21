@@ -30,13 +30,26 @@ public partial class ReplaceViewModel : ObservableObject
         };
     }
 
-    public async Task ExecuteAsync(string content, CancellationToken token)
+
+    private CancellationTokenSource? _replaceCts;
+
+    public async Task ExecuteAsync(string content)
     {
         if (ReplaceProp.ActiveService is null)
         {
             Singleton<NotifyIconViewModel>.Instance.ShowBalloonTip("请先选择替换翻译服务后重试");
             return;
         }
+
+        if (_replaceCts != null)
+        {
+            _replaceCts.Cancel();
+            LogService.Logger.Debug("取消替换翻译");
+            return;
+        }
+
+        _replaceCts ??= new CancellationTokenSource();
+        var token = _replaceCts.Token;
 
         try
         {
@@ -45,7 +58,7 @@ public partial class ReplaceViewModel : ObservableObject
             var (sourceLang, targetLang) = await DetectLanguageAsync(content, token);
 
             LogService.Logger.Debug(
-                $"<Begin> Replace Translator\tcontent: [{content.Replace("\r", @"\r").Replace("\n", @"\n").Replace("\t", @"\t")}]\ttarget: [{targetLang.GetDescription()}]");
+                $"<Begin> 替换翻译\tservice: [{ReplaceProp.ActiveService.Type}]\tcontent: [{content.Replace("\r", @"\r").Replace("\n", @"\n").Replace("\t", @"\t")}]\ttarget: [{targetLang.GetDescription()}]");
 
             // Perform translation
             var req = new RequestModel(content, sourceLang, targetLang);
@@ -58,14 +71,16 @@ public partial class ReplaceViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            LogService.Logger.Warn("Replace Translator Error: " + ex.Message);
+            Singleton<NotifyIconViewModel>.Instance.ShowBalloonTip("替换翻译失败, 请检查网络或日志");
+            LogService.Logger.Warn("替换翻译 Error: " + ex.Message);
             CursorManager.Error();
-            await Task.Delay(2000, token);
+            await Task.Delay(2000);
         }
         finally
         {
-            LogService.Logger.Debug("<End> Replace Translator");
+            LogService.Logger.Debug("<End> 替换翻译");
             CursorManager.Restore();
+            _replaceCts = null;
         }
     }
 

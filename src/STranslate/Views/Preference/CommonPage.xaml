@@ -98,7 +98,13 @@
                                         HorizontalAlignment="Right"
                                         BorderThickness="1"
                                         ItemsSource="{Binding GetFontFamilys}"
-                                        SelectedValue="{Binding CustomFont, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        SelectedValue="{Binding CustomFont, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <ComboBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel />
+                                            </ItemsPanelTemplate>
+                                        </ComboBox.ItemsPanel>
+                                    </ComboBox>
                                 </DockPanel>
 
                                 <DockPanel Margin="20,10">
@@ -285,7 +291,7 @@
 
                                 <DockPanel Margin="20,10">
                                     <TextBlock Text="目标语种为自动且原始语种为中文时使用" />
-                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="如果目标语种为自动且原始语种为中文时则使用该项指定语种&#13;仅当在线识别服务返回出错情况才会触发" />
+                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="如果目标语种为自动且原始语种为中文时则使用该项指定语种" />
                                     <ComboBox
                                         Height="30"
                                         HorizontalAlignment="Right"
@@ -304,7 +310,7 @@
 
                                 <DockPanel Margin="20,10">
                                     <TextBlock Text="目标语种为自动且原始语种为非中文时使用" />
-                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="如果目标语种为自动且原始语种为非中文时则使用该项指定语种&#13;仅当在线识别服务返回出错情况才会触发" />
+                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="如果目标语种为自动且原始语种为非中文时则使用该项指定语种" />
                                     <ComboBox
                                         Height="30"
                                         HorizontalAlignment="Right"
@@ -927,6 +933,15 @@
                                         Height="26"
                                         HorizontalAlignment="Right"
                                         IsChecked="{Binding IsShowIncrementalTranslation}" />
+                                </DockPanel>
+
+                                <DockPanel Margin="20,10">
+                                    <TextBlock Text="显示仅显示输出界面图标" />
+                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="主界面显示仅显示输出界面图标" />
+                                    <ToggleButton
+                                        Height="26"
+                                        HorizontalAlignment="Right"
+                                        IsChecked="{Binding IsShowOnlyShowRet}" />
                                 </DockPanel>
 
                                 <DockPanel Margin="20,10">

@@ -237,6 +237,7 @@ public class ConfigHelper
         CurrentConfig.IsShowConfigureService = model.IsShowConfigureService;
         CurrentConfig.IsShowMousehook = model.IsShowMousehook;
         CurrentConfig.IsShowIncrementalTranslation = model.IsShowIncrementalTranslation;
+        CurrentConfig.IsShowOnlyShowRet = model.IsShowOnlyShowRet;
         CurrentConfig.IsShowScreenshot = model.IsShowScreenshot;
         CurrentConfig.IsShowOCR = model.IsShowOCR;
         CurrentConfig.IsShowSilentOCR = model.IsShowSilentOCR;
@@ -294,6 +295,8 @@ public class ConfigHelper
         CurrentConfig.TargetLangIfSourceZh = model.TargetLangIfSourceZh;
         CurrentConfig.TargetLangIfSourceNotZh = model.TargetLangIfSourceNotZh;
 
+        ShowLangViewOnShowRetOperate(CurrentConfig.IsOnlyShowRet, CurrentConfig.IsHideLangWhenOnlyShowOutput);
+
         //重新执行必要操作
         StartupOperate(CurrentConfig.IsStartup);
         ThemeOperate(CurrentConfig.ThemeType);
@@ -324,7 +327,6 @@ public class ConfigHelper
                 Application.Current.Windows.OfType<MainView>().First());
 
         AutoTrasnalteOperate(CurrentConfig.AutoTranslate);
-        ShowLangViewOnShowRetOperate(CurrentConfig.IsOnlyShowRet, CurrentConfig.IsHideLangWhenOnlyShowOutput);
 
         WriteConfig(CurrentConfig);
         isSuccess = true;
@@ -765,6 +767,7 @@ public class ConfigHelper
             Constant.DefaultMouseHookHotkey);
         hk.OCR.Update(KeyModifiers.MOD_ALT | KeyModifiers.MOD_SHIFT, KeyCodes.S, Constant.DefaultOcrHotkey);
         hk.SilentOCR.Update(KeyModifiers.MOD_ALT | KeyModifiers.MOD_SHIFT, KeyCodes.F, Constant.DefaultSilentOcrHotkey);
+        hk.SilentTTS.Update(KeyModifiers.MOD_ALT | KeyModifiers.MOD_SHIFT, KeyCodes.G, Constant.DefaultSilentTtsHotkey);
         hk.ClipboardMonitor.Update(KeyModifiers.MOD_ALT | KeyModifiers.MOD_SHIFT, KeyCodes.A,
             Constant.DefaultClipboardMonitorHotkey);
         return new ConfigModel
@@ -851,10 +854,21 @@ public class ConfigHelper
             [
                 new TranslatorSTranslate(Guid.NewGuid(), "", "STranslate"),
                 new TranslatorApi(Guid.NewGuid(), "https://googlet.deno.dev/translate", "Google", IconType.Google),
+                new TranslatorKingSoftDict(),
+                new TranslatorBingDict(),
                 new TranslatorApi(Guid.NewGuid(), "https://deeplx.deno.dev/translate", "DeepL", isEnabled: false)
             ],
-            OCRList = [new PaddleOCR()],
-            TTSList = [new TTSOffline() { IsEnabled = true }, new TTSLingva()]
+            OCRList =
+            [
+                new PaddleOCR(),
+                new WeChatOCR()
+            ],
+            TTSList =
+            [
+                new TTSEdge() { IsEnabled = true },
+                new TTSOffline(),
+                new TTSLingva()
+            ]
         };
     }
 

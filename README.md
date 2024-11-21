@@ -22,7 +22,6 @@
 <p align="center">A <strong>ready-to-use</strong>, <strong>ready-to-go</strong> translation and OCR tool developed with WPF.
 </p>
 
-
 **English** | [**简体中文**](./README_ZH.md)
 
 ## Access
@@ -69,6 +68,10 @@ If you like it, you can buy the author a cup of coffee.
 | WeChat | Alipay |
 | :--: | :--: |
 |![wehcatpay](./img/wechatpay.jpg) | ![alipay](./img/alipay.jpg) |
+
+## Others
+
+**The software is open source and free of charge. If there are special customization needs, I accept paid development [email](zggsong@foxmail.com)**
 
 ## Author
 

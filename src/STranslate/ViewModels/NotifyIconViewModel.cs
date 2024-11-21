@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows;
-using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -40,6 +39,9 @@ public partial class NotifyIconViewModel : ObservableObject
         UpdateToolTip();
         SystemEvents.DisplaySettingsChanged += DisplaySettingsChanged;
         WeakReferenceMessenger.Default.Register<ExternalCallMessenger>(this, (o, e) => ExternalCallHandler(e));
+#if DEBUG
+        LogService.Logger.OnErrorOccured += ShowBalloonTip;
+#endif
     }
 
     /// <summary>
@@ -132,6 +134,14 @@ public partial class NotifyIconViewModel : ObservableObject
                         var bitmap = BitmapUtil.ReadImageFile(content);
                         if (bitmap != null) await SilentOCRCallbackAsync(bitmap);
                     }
+                }
+            },
+            {
+                ExternalCallAction.tts_silence,
+                async (_, content) =>
+                {
+                    if (!string.IsNullOrEmpty(content))
+                        await SilentTTSHandlerAsync(content);
                 }
             },
             {
@@ -321,7 +331,7 @@ public partial class NotifyIconViewModel : ObservableObject
                 break;
         }
 
-        await Task.Delay(200, token)
+        await Task.Delay(200)
             .ContinueWith(_ => CommonUtil.InvokeOnUIThread(() => action?.Invoke(token)), token);
 
         return;
@@ -436,6 +446,23 @@ public partial class NotifyIconViewModel : ObservableObject
             MemoUtil.FlushMemory();
         }
     }
+
+    [RelayCommand]
+    private async Task SilentTTSAsync()
+    {
+        if (!TryGetWord(out var content) || content == null)
+        {
+            return;
+        }
+
+        await SilentTTSHandlerAsync(content);
+    }
+
+    internal async Task SilentTTSHandlerAsync(string content)
+    {
+        await Singleton<TTSViewModel>.Instance.SilentSpeakTextAsync(content);
+    }
+
 
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task ScreenShotTranslateAsync(object obj, CancellationToken token) => await ScreenshotHandlerAsync(obj, ScreenShotHandler, token);
@@ -722,8 +749,7 @@ public partial class NotifyIconViewModel : ObservableObject
     private async Task ReplaceTranslateAsync(Window view)
     {
         if (!TryGetWord(out var content) || content == null) return;
-        //TODO: 取消
-        await Singleton<ReplaceViewModel>.Instance.ExecuteAsync(content, CancellationToken.None);
+        await Singleton<ReplaceViewModel>.Instance.ExecuteAsync(content);
     }
 
     internal bool TryGetWord(out string? content)
@@ -734,7 +760,11 @@ public partial class NotifyIconViewModel : ObservableObject
             content = ClipboardUtil.GetSelectedText(interval)?.Trim();
             if (string.IsNullOrEmpty(content))
             {
-                LogService.Logger.Warn($"取词失败, 请尝试延长取词间隔(当前: {interval}ms)...");
+                LogService.Logger.Warn($"取词失败, 可能原因有:\n" +
+                    $"1. 未选中文本\n" +
+                    $"2. 文本禁止复制\n" +
+                    $"3. 取词间隔过短, 尝试延长取词间隔(当前: {interval}ms)\n" +
+                    $"4. 被取词软件权限高于本软件权限(管理员权限启动即可解决)");
                 return false;
             }
         }
@@ -802,12 +832,12 @@ public partial class NotifyIconViewModel : ObservableObject
         var top = position.Y;
 
         //保持页面在屏幕上方三分之一处
-        if ((top - bounds.Top) * 3 > bounds.Height) top = bounds.Height / 3 + bounds.Top;
+        //if ((top - bounds.Top) * 3 > bounds.Height) top = bounds.Height / 3 + bounds.Top;
 
-        //如果当前高度不足以容纳最大高度的内容，则使用最大高度为窗口Top值（修改为150%缩放似乎有问题）
-        if (bounds.Height - top + bounds.Top < view.MaxHeight) top = bounds.Height - view.MaxHeight + bounds.Top - 48;
+        ////如果当前高度不足以容纳最大高度的内容，则使用最大高度为窗口Top值（修改为150%缩放似乎有问题）
+        //if (bounds.Height - top + bounds.Top < view.MaxHeight) top = bounds.Height - view.MaxHeight + bounds.Top - 48;
 
-        if (view.MaxHeight > bounds.Height) top = bounds.Top;
+        //if (view.MaxHeight > bounds.Height) top = bounds.Top;
         
         //右侧不超出当前屏幕区域
         if (left + view.Width > bounds.Left + bounds.Width) left = bounds.Left + bounds.Width - view.Width;

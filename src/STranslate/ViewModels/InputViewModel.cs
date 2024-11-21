@@ -459,6 +459,7 @@ public partial class InputViewModel : ObservableObject
         CancellationToken token)
     {
         var isCancelMsg = false;
+
         switch (exception)
         {
             case TaskCanceledException:
@@ -470,7 +471,6 @@ public partial class InputViewModel : ObservableObject
                 errorMessage = "请求出错";
                 break;
         }
-
         service.Data.IsSuccess = false;
         service.Data.Result = $"{errorMessage}: {exception.Message}";
         service.Data.Exception = exception;
@@ -578,14 +578,12 @@ public partial class InputViewModel : ObservableObject
     [RelayCommand]
     private void RemoveSpace(PlaceholderTextBox textBox)
     {
-        var oldTxt = textBox.Text;
-        var newTxt = StringUtil.RemoveSpace(oldTxt);
-        if (string.Equals(oldTxt, newTxt))
+        if (!StringUtil.ProcessTextBox(isLineBreak: false, textBox))
             return;
 
         ToastHelper.Show("移除空格");
 
-        RemoveHandler(textBox, newTxt);
+        RemoveHandler();
     }
 
     [RelayCommand]
@@ -645,12 +643,8 @@ public partial class InputViewModel : ObservableObject
     }
 
 
-    internal void RemoveHandler(PlaceholderTextBox textBox, string newTxt)
+    internal void RemoveHandler()
     {
-        //https://stackoverflow.com/questions/4476282/how-can-i-undo-a-textboxs-text-changes-caused-by-a-binding
-        textBox.SelectAll();
-        textBox.SelectedText = newTxt;
-
         if (!CnfHelper.CurrentConfig?.IsAdjustContentTranslate ?? false)
             return;
 
@@ -677,13 +671,11 @@ public partial class InputViewModel : ObservableObject
 
     private void RemoveLineBreaksFromTextBox(PlaceholderTextBox textBox)
     {
-        var oldTxt = textBox.Text;
-        var newTxt = StringUtil.RemoveLineBreaks(oldTxt);
-        if (string.Equals(oldTxt, newTxt))
+        if (!StringUtil.ProcessTextBox(isLineBreak: true, textBox))
             return;
 
         ToastHelper.Show("移除换行");
-        RemoveHandler(textBox, newTxt);
+        RemoveHandler();
     }
 
 

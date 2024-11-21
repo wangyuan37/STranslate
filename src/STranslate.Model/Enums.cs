@@ -973,6 +973,7 @@ public enum HotkeyEnum
     MousehookHk,
     OcrHk,
     SilentOcrHk,
+    SilentTtsHk,
     ClipboardMonitorHk
 }
 
@@ -994,7 +995,8 @@ public enum ExternalCallAction
     open_window,
     open_preference,
     open_history,
-    forbiddenhotkey
+    forbiddenhotkey,
+    tts_silence
 }
 
 /// <summary>
@@ -1365,6 +1367,12 @@ public enum EdgeVoiceEnum
     [Description("NiaNeural-威尔士语(英国)")] cy_GB8NiaNeural,
     [Description("ThandoNeural-祖鲁语(南非)")] zu_ZA8ThandoNeural,
     [Description("ThembaNeural-祖鲁语(南非)")] zu_ZA8ThembaNeural
+}
+
+public enum STranslateMode
+{
+    [Description("模式一")] IOS,
+    [Description("模式二")] Brower,
 }
 
 /// <summary>
