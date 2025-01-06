@@ -417,7 +417,7 @@ public partial class NotifyIconViewModel : ObservableObject
     {
         try
         {
-            CursorManager.Execute();
+            CursorManager.Instance.Execute();
             var bytes = BitmapUtil.ConvertBitmap2Bytes(bitmap, GetImageFormat());
             var ocrResult = await Singleton<OCRScvViewModel>.Instance.ExecuteAsync(bytes, WindowType.Main,
                 lang: _configHelper.CurrentConfig?.MainOcrLang ?? LangEnum.auto);
@@ -442,7 +442,7 @@ public partial class NotifyIconViewModel : ObservableObject
         }
         finally
         {
-            CursorManager.Restore();
+            CursorManager.Instance.Restore();
             MemoUtil.FlushMemory();
         }
     }
@@ -524,15 +524,14 @@ public partial class NotifyIconViewModel : ObservableObject
             //取词前移除换行
             if (_configHelper.CurrentConfig?.IsRemoveLineBreakGettingWords ?? false)
                 getText = StringUtil.RemoveLineBreaks(getText);
-            //OCR后自动复制
-            //https://github.com/ZGGSONG/STranslate/issues/223
-            //if (_configHelper.CurrentConfig?.IsOcrAutoCopyText ?? false)
-            //    ClipboardHelper.Copy(getText);
+            //截图翻译OCR后自动复制
+            if (_configHelper.CurrentConfig?.IsScreenshotOcrAutoCopyText ?? false)
+                ClipboardHelper.Copy(getText);
             // 如果仅有空格则移除
             if (string.IsNullOrWhiteSpace(_inputViewModel.InputContent))
                 _inputViewModel.InputContent = "";
             _inputViewModel.InputContent += getText;
-            view.InputView.InputTB.CaretIndex = _inputViewModel.InputContent.Length;
+            Singleton<MainViewModel>.Instance.OnInputTbUpdateCaretIndex?.Invoke();
             _inputViewModel.TranslateCommand.Execute(null);
         }
         catch (OperationCanceledException)
@@ -610,7 +609,10 @@ public partial class NotifyIconViewModel : ObservableObject
         SpecialWindowActiveHandler(view);
 
         if (view is MainView mView)
+        {
             mView.WindowAnimation();
+            Singleton<MainViewModel>.Instance.OnInputTbUpdateCaretIndex?.Invoke();
+        }
         else
             view.Show();
         view.Activate();

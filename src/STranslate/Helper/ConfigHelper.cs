@@ -211,13 +211,14 @@ public class ConfigHelper
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    public bool WriteConfig(CommonViewModel model)
+    public async Task<bool> WriteConfigAsync(CommonViewModel model)
     {
         var isSuccess = false;
         if (CurrentConfig is null)
             return isSuccess;
         //判断是否相同,避免重复注册
         var isHotkeyConfSame = CurrentConfig.DisableGlobalHotkeys == model.DisableGlobalHotkeys;
+        var isThemeSame = CurrentConfig.ThemeType == model.ThemeType;
         CurrentConfig.IsStartup = model.IsStartup;
         CurrentConfig.NeedAdministrator = model.NeedAdmin;
         CurrentConfig.HistorySize = model.HistorySize;
@@ -226,6 +227,7 @@ public class ConfigHelper
         CurrentConfig.IsFollowMouse = model.IsFollowMouse;
         CurrentConfig.CloseUIOcrRetTranslate = model.CloseUIOcrRetTranslate;
         CurrentConfig.IsOcrAutoCopyText = model.IsOcrAutoCopyText;
+        CurrentConfig.IsScreenshotOcrAutoCopyText = model.IsScreenshotOcrAutoCopyText;
         CurrentConfig.IsAdjustContentTranslate = model.IsAdjustContentTranslate;
         CurrentConfig.IsRemoveLineBreakGettingWords = model.IsRemoveLineBreakGettingWords;
         CurrentConfig.IsRemoveLineBreakGettingWordsOCR = model.IsRemoveLineBreakGettingWordsOCR;
@@ -269,6 +271,8 @@ public class ConfigHelper
         CurrentConfig.DisableGlobalHotkeys = model.DisableGlobalHotkeys;
         CurrentConfig.MainViewMaxHeight = model.MainViewMaxHeight;
         CurrentConfig.MainViewWidth = model.MainViewWidth;
+        CurrentConfig.InputViewMaxHeight = model.InputViewMaxHeight;
+        CurrentConfig.InputViewMinHeight = model.InputViewMinHeight;
         CurrentConfig.MainViewShadow = model.MainViewShadow;
         CurrentConfig.IsPromptToggleVisible = model.IsPromptToggleVisible;
         CurrentConfig.IsShowSnakeCopyBtn = model.IsShowSnakeCopyBtn;
@@ -294,12 +298,15 @@ public class ConfigHelper
         CurrentConfig.SourceLangIfAuto = model.SourceLangIfAuto;
         CurrentConfig.TargetLangIfSourceZh = model.TargetLangIfSourceZh;
         CurrentConfig.TargetLangIfSourceNotZh = model.TargetLangIfSourceNotZh;
-
+        CurrentConfig.UsePasteOutput = model.UsePasteOutput;
         ShowLangViewOnShowRetOperate(CurrentConfig.IsOnlyShowRet, CurrentConfig.IsHideLangWhenOnlyShowOutput);
 
         //重新执行必要操作
         StartupOperate(CurrentConfig.IsStartup);
-        ThemeOperate(CurrentConfig.ThemeType);
+        if (!isThemeSame)
+        {
+            await Task.Run(() => ThemeOperate(CurrentConfig.ThemeType));
+        }
         ProxyOperate(
             CurrentConfig.ProxyMethod,
             CurrentConfig.ProxyIp,
@@ -328,7 +335,7 @@ public class ConfigHelper
 
         AutoTrasnalteOperate(CurrentConfig.AutoTranslate);
 
-        WriteConfig(CurrentConfig);
+        await WriteConfigAsync(CurrentConfig);
         isSuccess = true;
         return isSuccess;
     }
@@ -399,7 +406,7 @@ public class ConfigHelper
             };
             var content = File.ReadAllText(configPath);
             var config = JsonConvert.DeserializeObject<ConfigModel>(content, settings) ??
-                         throw new Exception("反序列化失败...");
+                        throw new Exception("反序列化失败...");
             Decryption(config);
             return true;
         }
@@ -425,7 +432,7 @@ public class ConfigHelper
             };
             var content = File.ReadAllText(Constant.CnfFullName);
             var config = JsonConvert.DeserializeObject<ConfigModel>(content, settings) ??
-                         throw new Exception("反序列化失败...");
+                        throw new Exception("反序列化失败...");
             Decryption(config);
             return config;
         }
@@ -467,6 +474,13 @@ public class ConfigHelper
         var copy = conf.Clone();
         Encryption(copy);
         File.WriteAllText(Constant.CnfFullName, JsonConvert.SerializeObject(copy, Formatting.Indented));
+    }
+    
+    private async Task WriteConfigAsync(ConfigModel conf)
+    {
+        var copy = conf.Clone();
+        Encryption(copy);
+        await File.WriteAllTextAsync(Constant.CnfFullName, JsonConvert.SerializeObject(copy, Formatting.Indented));
     }
 
     /// <summary>
@@ -692,7 +706,12 @@ public class ConfigHelper
     /// <param name="isStayView"></param>
     public void MainViewStayOperate(bool isStayView)
     {
-        Application.Current.MainWindow!.ShowInTaskbar = isStayView;
+        var window = Application.Current.MainWindow ?? Application.Current.Windows.OfType<MainView>().First();
+        window.ShowInTaskbar = isStayView;
+        if (isStayView)
+            WindowHelper.ShowInAltTab(window);
+        else
+            WindowHelper.HideFromAltTab(window);
     }
 
     /// <summary>
@@ -779,6 +798,7 @@ public class ConfigHelper
             IsStartup = false,
             IsFollowMouse = false,
             IsOcrAutoCopyText = false,
+            IsScreenshotOcrAutoCopyText = false,
             CloseUIOcrRetTranslate = false,
             IsAdjustContentTranslate = false,
             IsRemoveLineBreakGettingWords = false,
@@ -826,6 +846,8 @@ public class ConfigHelper
             DisableGlobalHotkeys = false,
             MainViewMaxHeight = 840,
             MainViewWidth = 460,
+            InputViewMaxHeight = 200,
+            InputViewMinHeight = 70,
             MainViewShadow = false,
             IsPromptToggleVisible = true,
             IsShowSnakeCopyBtn = false,
@@ -849,6 +871,7 @@ public class ConfigHelper
             SourceLangIfAuto = LangEnum.en,
             TargetLangIfSourceZh = LangEnum.en,
             TargetLangIfSourceNotZh = LangEnum.zh_cn,
+            UsePasteOutput = false,
             ReplaceProp = new ReplaceProp(),
             Services =
             [
@@ -898,6 +921,7 @@ public class OCRConverter : JsonConverter<IOCR>
             (int)OCRType.GoogleOCR => new GoogleOCR(),
             (int)OCRType.OpenAIOCR => new OpenAIOCR(),
             (int)OCRType.WeChatOCR => new WeChatOCR(),
+            (int)OCRType.GeminiOCR => new GeminiOCR(),
             _ => throw new NotSupportedException($"Unsupported OCRServiceType: {type}")
         };
 

@@ -359,7 +359,7 @@ public partial class TranslatorGemini : TranslatorBase, ITranslatorLlm
         var a_model = Model.Trim();
         a_model = string.IsNullOrEmpty(a_model) ? "gemini-pro" : a_model;
 
-        if (!uriBuilder.Path.EndsWith($"/v1beta/models/{a_model}:streamGenerateContent"))
+        if (uriBuilder.Path == "/")
             uriBuilder.Path = $"/v1beta/models/{a_model}:streamGenerateContent";
 
         uriBuilder.Query = $"key={AppKey}";

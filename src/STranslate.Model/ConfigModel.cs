@@ -45,6 +45,11 @@ public class ConfigModel
     public bool IsOcrAutoCopyText { get; set; }
 
     /// <summary>
+    ///     截图OCR时是否自动复制文本
+    /// </summary>
+    public bool IsScreenshotOcrAutoCopyText { get; set; }
+
+    /// <summary>
     ///     是否调整完语句后翻译
     /// </summary>
     public bool IsAdjustContentTranslate { get; set; }
@@ -300,6 +305,13 @@ public class ConfigModel
     public double MainViewWidth { get; set; } = 460;
 
     /// <summary>
+    ///     输入框高度
+    /// </summary>
+    public double InputViewMaxHeight { get; set; } = 200;
+    
+    public double InputViewMinHeight { get; set; } = 70;
+
+    /// <summary>
     ///     主窗口阴影
     ///     * 比较损耗性能 实测多占用30MB内存
     /// </summary>
@@ -430,6 +442,11 @@ public class ConfigModel
     public LangEnum TargetLangIfSourceNotZh { get; set; } = LangEnum.zh_cn;
 
     /// <summary>
+    ///     调用系统剪贴板来插入结果
+    /// </summary>
+    public bool UsePasteOutput { get; set; }
+
+    /// <summary>
     ///     替换翻译
     /// </summary>
     public ReplaceProp ReplaceProp { get; set; } = new();
@@ -475,6 +492,7 @@ public class ConfigModel
             IsFollowMouse = IsFollowMouse,
             CloseUIOcrRetTranslate = CloseUIOcrRetTranslate,
             IsOcrAutoCopyText = IsOcrAutoCopyText,
+            IsScreenshotOcrAutoCopyText = IsScreenshotOcrAutoCopyText,
             IsAdjustContentTranslate = IsAdjustContentTranslate,
             IsRemoveLineBreakGettingWords = IsRemoveLineBreakGettingWords,
             IsRemoveLineBreakGettingWordsOCR = IsRemoveLineBreakGettingWordsOCR,
@@ -527,6 +545,8 @@ public class ConfigModel
             DisableGlobalHotkeys = DisableGlobalHotkeys,
             MainViewMaxHeight = MainViewMaxHeight,
             MainViewWidth = MainViewWidth,
+            InputViewMaxHeight = InputViewMaxHeight,
+            InputViewMinHeight = InputViewMinHeight,
             MainViewShadow = MainViewShadow,
             IsPromptToggleVisible = IsPromptToggleVisible,
             IsShowSnakeCopyBtn = IsShowSnakeCopyBtn,
@@ -552,7 +572,8 @@ public class ConfigModel
             SourceLangIfAuto = SourceLangIfAuto,
             TargetLangIfSourceZh = TargetLangIfSourceZh,
             TargetLangIfSourceNotZh = TargetLangIfSourceNotZh,
-            ReplaceProp = (ReplaceProp)ReplaceProp.Clone(),
+            UsePasteOutput = UsePasteOutput,
+            ReplaceProp = ReplaceProp.Clone(),
             Hotkeys = Hotkeys?.Clone(),
             Services = Services?.Clone(),
             OCRList = OCRList?.DeepCopy(),

@@ -14,19 +14,28 @@ public partial class ReplaceViewModel : ObservableObject
     private readonly ConfigHelper _configHelper = Singleton<ConfigHelper>.Instance;
     private readonly TranslatorViewModel _translateVm = Singleton<TranslatorViewModel>.Instance;
     public InputViewModel InputVm => Singleton<InputViewModel>.Instance;
+    private Guid? deletedSvc;
     public ReplaceViewModel()
     {
         // View 上绑定结果从List中获取
         ReplaceProp.ActiveService = AllServices.FirstOrDefault(x => x.Identify == ReplaceProp.ActiveService?.Identify);
 
-        _translateVm.PropertyChanged += (sender, args) =>
+        _translateVm.CurTransServiceList.ListChanged += (sender, args) =>
         {
-            // 检查是否被删除
-            if (sender is not BindingList<ITranslator> services || ReplaceProp.ActiveService is null) return;
-
-            // 当服务列表中有增删时检查当前活动服务是否被删除
-            if (services.All(x => x.Identify != ReplaceProp.ActiveService?.Identify))
-                ReplaceProp.ActiveService = null;
+            switch (args.ListChangedType)
+            {
+                case ListChangedType.ItemAdded:
+                    var svc = _translateVm.CurTransServiceList[args.NewIndex];
+                    if (svc.Identify == deletedSvc)
+                    {
+                        ReplaceProp.ActiveService = svc;
+                        deletedSvc = null;
+                    }
+                    break;
+                case ListChangedType.ItemDeleted:
+                    deletedSvc = ReplaceProp.ActiveService?.Identify;
+                    break;
+            }
         };
     }
 
@@ -53,7 +62,7 @@ public partial class ReplaceViewModel : ObservableObject
 
         try
         {
-            CursorManager.Execute();
+            CursorManager.Instance.Execute();
             // Determine target language
             var (sourceLang, targetLang) = await DetectLanguageAsync(content, token);
 
@@ -73,13 +82,13 @@ public partial class ReplaceViewModel : ObservableObject
         {
             Singleton<NotifyIconViewModel>.Instance.ShowBalloonTip("替换翻译失败, 请检查网络或日志");
             LogService.Logger.Warn("替换翻译 Error: " + ex.Message);
-            CursorManager.Error();
+            CursorManager.Instance.Error();
             await Task.Delay(2000);
         }
         finally
         {
             LogService.Logger.Debug("<End> 替换翻译");
-            CursorManager.Restore();
+            CursorManager.Instance.Restore();
             _replaceCts = null;
         }
     }
@@ -115,32 +124,45 @@ public partial class ReplaceViewModel : ObservableObject
         var ret = await ReplaceProp.ActiveService!.TranslateAsync(req, CancellationToken.None);
 
         if (!ret.IsSuccess) throw new Exception(ret.Result);
-        InputSimulatorHelper.PrintText(ret.Result);
+
+
+        // 判断是否使用粘贴输出
+        if (_configHelper.CurrentConfig?.UsePasteOutput ?? false)
+            InputSimulatorHelper.PrintTextWithClipboard(ret.Result);
+        else
+            InputSimulatorHelper.PrintText(ret.Result);
     }
 
     private async Task TranslateLlmAsync(RequestModel req, CancellationToken token)
     {
-        var count = 0;
+        var result = "";
         try
         {
             await ReplaceProp.ActiveService!.TranslateAsync(req,
                 msg =>
                 {
-                    count += msg.Length; // 计算已输出长度
+                    result += msg;
+                    if (_configHelper.CurrentConfig?.UsePasteOutput ?? false)
+                        return;
+
                     InputSimulatorHelper.PrintText(msg);
                 }, token);
+
+            // 回调结束后判断是否需要使用剪贴板输出
+            if (_configHelper.CurrentConfig?.UsePasteOutput ?? false)
+                InputSimulatorHelper.PrintTextWithClipboard(result);
         }
         catch (Exception)
         {
             // 出错则移除已输出内容
-            InputSimulatorHelper.Backspace(count);
+            InputSimulatorHelper.Backspace(result.Length);
             throw;
         }
     }
 
     #region Property
 
-    [ObservableProperty] private BindingList<ITranslator> _allServices = Singleton<TranslatorViewModel>.Instance.CurTransServiceList.Clone();
+    [ObservableProperty] private BindingList<ITranslator> _allServices = Singleton<TranslatorViewModel>.Instance.CurTransServiceList;
 
     [ObservableProperty] private ReplaceProp _replaceProp = Singleton<ConfigHelper>.Instance.CurrentConfig?.ReplaceProp ?? new ReplaceProp();
 

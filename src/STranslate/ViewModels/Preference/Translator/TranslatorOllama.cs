@@ -349,7 +349,8 @@ public partial class TranslatorOllama : TranslatorBase, ITranslatorLlm
 
         UriBuilder uriBuilder = new(Url);
 
-        if (!uriBuilder.Path.EndsWith("/api/chat")) uriBuilder.Path = "/api/chat";
+        if (uriBuilder.Path == "/")
+            uriBuilder.Path = "/api/chat";
 
         // 选择模型
         var a_model = Model.Trim();

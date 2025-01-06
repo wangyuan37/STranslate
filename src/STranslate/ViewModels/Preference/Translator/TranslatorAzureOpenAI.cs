@@ -354,7 +354,7 @@ public partial class TranslatorAzureOpenAI : TranslatorBase, ITranslatorLlm
         a_model = string.IsNullOrEmpty(a_model) ? "gpt35" : a_model;
 
         var path = $"/openai/deployments/{a_model}/chat/completions";
-        if (!uriBuilder.Path.EndsWith(path))
+        if (uriBuilder.Path == "/")
             uriBuilder.Path = path;
 
         if (string.IsNullOrEmpty(uriBuilder.Query))

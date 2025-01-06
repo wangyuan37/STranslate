@@ -349,7 +349,7 @@ public partial class TranslatorClaude : TranslatorBase, ITranslatorLlm
 
         UriBuilder uriBuilder = new(Url);
 
-        if (!uriBuilder.Path.EndsWith("/v1/messages"))
+        if (uriBuilder.Path == "/")
             uriBuilder.Path = "/v1/messages";
 
         // 选择模型

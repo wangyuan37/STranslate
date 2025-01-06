@@ -347,7 +347,7 @@ public partial class TranslatorDeepSeek : TranslatorBase, ITranslatorLlm
 
         UriBuilder uriBuilder = new(Url);
 
-        if (!uriBuilder.Path.EndsWith("/chat/completions"))
+        if (uriBuilder.Path == "/")
             uriBuilder.Path = "/chat/completions";
 
         // 选择模型

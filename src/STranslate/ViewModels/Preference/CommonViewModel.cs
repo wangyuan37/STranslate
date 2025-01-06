@@ -116,6 +116,8 @@ public partial class CommonViewModel : ObservableObject
 
     [ObservableProperty] private bool _isOcrAutoCopyText = ConfigHelper.CurrentConfig?.IsOcrAutoCopyText ?? false;
 
+    [ObservableProperty] private bool _isScreenshotOcrAutoCopyText = ConfigHelper.CurrentConfig?.IsScreenshotOcrAutoCopyText ?? false;
+
     /// <summary>
     ///     输出界面是否显示Prompt切换
     /// </summary>
@@ -372,6 +374,11 @@ public partial class CommonViewModel : ObservableObject
     /// </summary>
     [ObservableProperty] private LangEnum _targetLangIfSourceNotZh = ConfigHelper.CurrentConfig?.TargetLangIfSourceNotZh ?? LangEnum.zh_cn;
 
+    /// <summary>
+    ///     调用系统剪贴板来插入结果
+    /// </summary>
+    [ObservableProperty] private bool _usePasteOutput = ConfigHelper.CurrentConfig?.UsePasteOutput ?? false;
+
     public long HistorySize = ConfigHelper.CurrentConfig?.HistorySize ?? 100;
     public Action? OnOftenUsedLang;
 
@@ -446,7 +453,7 @@ public partial class CommonViewModel : ObservableObject
     public event Action<bool, bool, bool>? OnBooleansChanged;
 
     [RelayCommand]
-    private Task SaveAsync()
+    private async Task SaveAsync()
     {
         // 保存时如果未开启丢失焦点不隐藏则关闭最小化按钮配置
         if (!StayMainViewWhenLoseFocus && ShowMinimalBtn)
@@ -458,7 +465,7 @@ public partial class CommonViewModel : ObservableObject
             LogService.Logger.Info("关闭丢失焦点不隐藏取消显示最小化按钮");
         }
 
-        if (ConfigHelper.WriteConfig(this))
+        if (await ConfigHelper.WriteConfigAsync(this))
         {
             OnBooleansChanged?.Invoke(IncrementalTranslation, AutoTranslate, IsOnlyShowRet);
             ToastHelper.Show("保存常规配置成功", WindowType.Preference);
@@ -468,8 +475,6 @@ public partial class CommonViewModel : ObservableObject
             LogService.Logger.Debug($"保存常规配置失败，{JsonConvert.SerializeObject(this)}");
             ToastHelper.Show("保存常规配置失败", WindowType.Preference);
         }
-
-        return Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -483,6 +488,7 @@ public partial class CommonViewModel : ObservableObject
         IsFollowMouse = ConfigHelper.CurrentConfig?.IsFollowMouse ?? false;
         CloseUIOcrRetTranslate = ConfigHelper.CurrentConfig?.CloseUIOcrRetTranslate ?? false;
         IsOcrAutoCopyText = ConfigHelper.CurrentConfig?.IsOcrAutoCopyText ?? false;
+        IsScreenshotOcrAutoCopyText = ConfigHelper.CurrentConfig?.IsScreenshotOcrAutoCopyText ?? false;
         IsAdjustContentTranslate = ConfigHelper.CurrentConfig?.IsAdjustContentTranslate ?? false;
         IsRemoveLineBreakGettingWords = ConfigHelper.CurrentConfig?.IsRemoveLineBreakGettingWords ?? false;
         IsRemoveLineBreakGettingWordsOCR = ConfigHelper.CurrentConfig?.IsRemoveLineBreakGettingWordsOCR ?? false;
@@ -525,6 +531,8 @@ public partial class CommonViewModel : ObservableObject
         DisableGlobalHotkeys = ConfigHelper.CurrentConfig?.DisableGlobalHotkeys ?? false;
         MainViewMaxHeight = ConfigHelper.CurrentConfig?.MainViewMaxHeight ?? 840;
         MainViewWidth = ConfigHelper.CurrentConfig?.MainViewWidth ?? 460;
+        InputViewMaxHeight = ConfigHelper.CurrentConfig?.InputViewMaxHeight ?? 200;
+        InputViewMinHeight = ConfigHelper.CurrentConfig?.InputViewMinHeight ?? 70;
         MainViewShadow = ConfigHelper.CurrentConfig?.MainViewShadow ?? false;
         IsPromptToggleVisible = ConfigHelper.CurrentConfig?.IsPromptToggleVisible ?? true;
         IsShowSnakeCopyBtn = ConfigHelper.CurrentConfig?.IsShowSnakeCopyBtn ?? true;
@@ -550,6 +558,7 @@ public partial class CommonViewModel : ObservableObject
         SourceLangIfAuto = ConfigHelper.CurrentConfig?.SourceLangIfAuto ?? LangEnum.en;
         TargetLangIfSourceZh = ConfigHelper.CurrentConfig?.TargetLangIfSourceZh ?? LangEnum.en;
         TargetLangIfSourceNotZh = ConfigHelper.CurrentConfig?.TargetLangIfSourceNotZh ?? LangEnum.zh_cn;
+        UsePasteOutput = ConfigHelper.CurrentConfig?.UsePasteOutput ?? false;
 
         LoadHistorySizeType();
         ToastHelper.Show("重置配置", WindowType.Preference);
@@ -599,6 +608,12 @@ public partial class CommonViewModel : ObservableObject
     ///     主界面最大高度
     /// </summary>
     [ObservableProperty] private double _mainViewMaxHeight = ConfigHelper.CurrentConfig?.MainViewMaxHeight ?? 840;
+    
+    /// <summary>
+    ///     输入界面最大高度
+    /// </summary>
+    [ObservableProperty] private double _inputViewMaxHeight = ConfigHelper.CurrentConfig?.InputViewMaxHeight ?? 200;
+    [ObservableProperty] private double _inputViewMinHeight = ConfigHelper.CurrentConfig?.InputViewMinHeight ?? 70;
 
     /// <summary>
     ///     主界面宽度

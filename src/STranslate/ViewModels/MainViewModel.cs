@@ -51,6 +51,8 @@ public partial class MainViewModel : ObservableObject
 
     public bool IsHotkeyCopy = false;
 
+    public Action? OnInputTbUpdateCaretIndex;
+
     public MainViewModel()
     {
 #if DEBUG
@@ -405,8 +407,8 @@ public partial class MainViewModel : ObservableObject
         common.IsOnlyShowRet = !common.IsOnlyShowRet;
         common.SaveCommand.Execute(null);
 
-        var msg = (common.IsOnlyShowRet ? "隐藏" : "显示") + "非输出部分";
-        ToastHelper.Show(msg);
+        //var msg = (common.IsOnlyShowRet ? "隐藏" : "显示") + "非输出部分";
+        //ToastHelper.Show(msg);
     }
 
     private void OnWordsSelectedChanged(string content)
@@ -438,6 +440,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         InputVM.InputContent += content;
+        OnInputTbUpdateCaretIndex?.Invoke();
 
         //如果重复执行先取消上一步操作
         InputVM.Save2VocabularyBookCancelCommand.Execute(null);

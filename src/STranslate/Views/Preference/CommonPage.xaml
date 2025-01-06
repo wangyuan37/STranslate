@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:common="clr-namespace:STranslate.Style.Commons;assembly=STranslate.Style"
+    xmlns:control="clr-namespace:STranslate.Style.Controls;assembly=STranslate.Style"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:STranslate.Model;assembly=STranslate.Model"
@@ -489,7 +490,16 @@
                                 </DockPanel>
 
                                 <DockPanel Margin="20,10">
-                                    <TextBlock Text="净化取词" />
+                                    <TextBlock Text="替换翻译使用剪贴板输出" />
+                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="替换翻译输出结果不完整时，可尝试启用此配置替代模拟键盘输出" />
+                                    <ToggleButton
+                                        Height="26"
+                                        HorizontalAlignment="Right"
+                                        IsChecked="{Binding UsePasteOutput}" />
+                                </DockPanel>
+
+                                <DockPanel Margin="20,10">
+                                    <TextBlock Text="自动净化取词(所有OCR场景)" />
                                     <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="所有取词(包括OCR)自动整理格式，主要针对PDF移除多余换行" />
                                     <ToggleButton
                                         Height="26"
@@ -513,6 +523,15 @@
                                         Height="26"
                                         HorizontalAlignment="Right"
                                         IsChecked="{Binding UseFormsCopy}" />
+                                </DockPanel>
+
+                                <DockPanel Margin="20,10">
+                                    <TextBlock Text="截图翻译识别文本后自动复制" />
+                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="截图翻译识别文本后自动复制文本内容" />
+                                    <ToggleButton
+                                        Height="26"
+                                        HorizontalAlignment="Right"
+                                        IsChecked="{Binding IsScreenshotOcrAutoCopyText}" />
                                 </DockPanel>
 
                                 <DockPanel Margin="20,10">
@@ -731,6 +750,24 @@
                                             TickPlacement="None"
                                             Value="{Binding MainViewWidth, Mode=TwoWay}" />
                                     </StackPanel>
+                                </DockPanel>
+
+                                <DockPanel Margin="20,10">
+                                    <TextBlock HorizontalAlignment="Left" Text="输入框高度[立即生效]" />
+                                    <TextBlock Style="{DynamicResource InfoTextBlock}" ToolTip="输入框高度调整" />
+                                    <control:SilderArrange
+                                        MinWidth="335"
+                                        Margin="0,0,10,0"
+                                        HorizontalAlignment="Right"
+                                        DockPanel.Dock="Right"
+                                        EndValue="{Binding InputViewMaxHeight}"
+                                        FlowDirection="LeftToRight"
+                                        Maximum="{Binding MainViewMaxHeight}"
+                                        Minimum="20"
+                                        SilderWidth="200"
+                                        SliderTickFrequency="10"
+                                        SliderTickPlacement="None"
+                                        StartValue="{Binding InputViewMinHeight}" />
                                 </DockPanel>
 
                                 <DockPanel Margin="20,10">
